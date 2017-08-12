@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+  <div class="main-inner">
+    <div class="container">
+      <div class="row">
+        <div class="span4">
+          <h1 style="text-align:center;padding-bottom:25px"><img src="{% static 'img/xmaquina.png' %}" style="width:315px;" alt="X-Máquina"></h1>
+        </div>
+        <div class="span8">
+          <div class="widget">
+  	      	<div class="widget-content">
+              <h2><i class="icon-chevron-right"></i> Bem-vindo!</h2>
+              <br>
+              <p>Este é o <i>webapp</i> da X-Máquina, utilize este canal para enviar seus modelos à CNC.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /container -->
+  </div>
+  <!-- /main-inner -->
+  {% endblock %}

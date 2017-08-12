@@ -1,0 +1,137 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Login - X-Máquina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'css/bootstrap-responsive.min.css' %}" rel="stylesheet" type="text/css" />
+  <link href="{% static 'css/font-awesome.css" rel="stylesheet' %}">
+  <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet">
+  <link href="{% static 'css/style.css' %}" rel="stylesheet" type="text/css">
+  {% block extrastyle %}
+  <link href="{% static 'css/pages/signin.css' %}" rel="stylesheet" type="text/css">
+  {% endblock %}
+</head>
+
+<body>
+  <div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </a>
+        <a class="brand" href="index.html">
+          X-Máquina
+        </a>
+      </div> <!-- /container -->
+    </div> <!-- /navbar-inner -->
+  </div> <!-- /navbar -->
+  <div class="account-container">
+    <div class="content clearfix">
+      {% if form.errors %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger alert-dismissable" role="alert">
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          {{ form.non_field_errors|striptags }}
+        </div>
+        {% endif %}
+        {% for field in form %}
+          {% if field.errors %}
+          <div class="alert alert-danger alert-dismissable" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{ field.label }}: {{ field.errors|striptags }}<br>
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      <form action="{% url 'user:Login' %}" method="POST">
+        {% csrf_token %}
+        <h1>Login</h1>
+        <div class="login-fields">
+          <p>Preencha os campos</p>
+          <div class="field">
+            <label for="username">E-mail</label>
+            {{ form.username }}
+          </div> <!-- /field -->
+          <div class="field">
+            <label for="password">Senha:</label>
+            {{ form.password }}
+          </div> <!-- /password -->
+        </div> <!-- /login-fields -->
+
+        <div class="login-actions">
+          <div class="login-extra">
+            <a href="{% url 'user:Registrate' %}" class="">Não possui uma conta?</a><br>
+            <a href="{% url 'password_reset' %}">Recuperar senha</a>
+          </div> <!-- /login-extra -->
+          <button type="submit" class="button btn btn-success btn-large">Entrar</button>
+        </div> <!-- .actions -->
+      </form>
+    </div> <!-- /content -->
+  </div> <!-- /account-container -->
+  <br><br><br>
+  <div class="extra">
+    <div class="extra-inner">
+      <div class="container">
+        <div class="row">
+          <div class="span6">
+            <h4>Universidade de Brasília</h4>
+            <h5>Faculdade UnB Gama</h5>
+            <ul>
+              <li>Projeto realizado por alunos da disciplina Projeto Integrador de Engenharia 2, 1º/2017</li>
+            </ul>
+          </div>
+          <!-- /span3 -->
+          <div class="span3">
+            <h4>Ajuda</h4>
+            <ul>
+              <li><a href="javascript:;">FAQ</a></li>
+              <li><a href="javascript:;">Pergunte-nos :)</a></li>
+              <li><a href="javascript:;">Vídeo Tutorial</a></li>
+              <li><a href="javascript:;">Feedback</a></li>
+            </ul>
+          </div>
+          <!-- /span3 -->
+          <div class="span3">
+            <h4>Termos de Uso</h4>
+            <ul>
+              <li><a href="javascript:;">Licença</a></li>
+              <li><a href="javascript:;">Política de Privacidade</a></li>
+            </ul>
+          </div>
+          <!-- /span4 -->
+        </div>
+        <!-- /row -->
+      </div>
+      <!-- /container -->
+    </div>
+    <!-- /extra-inner -->
+  </div>
+  <!-- /extra -->
+  <div class="footer">
+    <div class="footer-inner">
+      <div class="container">
+        <div class="row">
+          <div class="span12"> &copy; 2017 <a href="http://www.x-maquina.com/">X-Máquina</a>. </div>
+          <!-- /span12 -->
+        </div>
+        <!-- /row -->
+      </div>
+      <!-- /container -->
+    </div>
+    <!-- /footer-inner -->
+  </div>
+  <!-- /footer -->
+  <!-- Le javascript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+  <script src="{% static 'js/bootstrap.js' %}"></script>
+  <script src="{% static 'js/signin.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% load bootstrap3 %}
+
+{% block title %}404 - Não encontrado{% endblock %}
+{% block content %}
+  <div class="main-inner">
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <div class="widget">
+            <div class="widget-content">
+              <h1 class="center">404<br><small>Oops! Página não encontrada.</small></h1>
+              <hr>
+              <p>A página que você solicitou não foi encontrada :(</p>
+            </div>
+            <!-- /widget-content -->
+          </div>
+          <!-- /widget -->
+        </div>
+      </div>
+      <!-- /row -->
+    </div>
+    <!-- /container -->
+  </div>
+  <!-- /main-inner -->
+{% endblock %}
