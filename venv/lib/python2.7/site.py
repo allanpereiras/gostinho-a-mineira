@@ -122,7 +122,7 @@ def removeduppaths():
         # if they only differ in case); turn relative paths into absolute
         # paths.
         dir, dircase = makepath(dir)
-        if not dircase in known_paths:
+        if dircase not in known_paths:
             L.append(dir)
             known_paths.add(dircase)
     sys.path[:] = L
@@ -174,7 +174,7 @@ def addpackage(sitedir, name, known_paths):
                 continue
             line = line.rstrip()
             dir, dircase = makepath(sitedir, line)
-            if not dircase in known_paths and os.path.exists(dir):
+            if dircase not in known_paths and os.path.exists(dir):
                 sys.path.append(dir)
                 known_paths.add(dircase)
     finally:
@@ -192,7 +192,7 @@ def addsitedir(sitedir, known_paths=None):
     else:
         reset = 0
     sitedir, sitedircase = makepath(sitedir)
-    if not sitedircase in known_paths:
+    if sitedircase not in known_paths:
         sys.path.append(sitedir)        # Add path component
     try:
         names = os.listdir(sitedir)
@@ -200,7 +200,7 @@ def addsitedir(sitedir, known_paths=None):
         return
     names.sort()
     for name in names:
-        if name.endswith(os.extsep + "pth"):
+        if name.endswith(f"{os.extsep}pth"):
             addpackage(sitedir, name, known_paths)
     if reset:
         known_paths = None
@@ -226,17 +226,37 @@ def addsitepackages(known_paths, sys_prefix=sys.prefix, exec_prefix=sys.exec_pre
                                 os.path.join(prefix, "Extras", "lib", "python")]
 
                 else: # any other Python distros on OSX work this way
-                    sitedirs = [os.path.join(prefix, "lib",
-                                             "python" + sys.version[:3], "site-packages")]
+                    sitedirs = [
+                        os.path.join(
+                            prefix,
+                            "lib",
+                            f"python{sys.version[:3]}",
+                            "site-packages",
+                        )
+                    ]
+
 
             elif os.sep == '/':
-                sitedirs = [os.path.join(prefix,
-                                         "lib",
-                                         "python" + sys.version[:3],
-                                         "site-packages"),
-                            os.path.join(prefix, "lib", "site-python"),
-                            os.path.join(prefix, "python" + sys.version[:3], "lib-dynload")]
-                lib64_dir = os.path.join(prefix, "lib64", "python" + sys.version[:3], "site-packages")
+                sitedirs = [
+                    os.path.join(
+                        prefix,
+                        "lib",
+                        f"python{sys.version[:3]}",
+                        "site-packages",
+                    ),
+                    os.path.join(prefix, "lib", "site-python"),
+                    os.path.join(
+                        prefix, f"python{sys.version[:3]}", "lib-dynload"
+                    ),
+                ]
+
+                lib64_dir = os.path.join(
+                    prefix,
+                    "lib64",
+                    f"python{sys.version[:3]}",
+                    "site-packages",
+                )
+
                 if (os.path.exists(lib64_dir) and
                     os.path.realpath(lib64_dir) not in [os.path.realpath(p) for p in sitedirs]):
                     if _is_64bit:
@@ -250,13 +270,25 @@ def addsitepackages(known_paths, sys_prefix=sys.prefix, exec_prefix=sys.exec_pre
                 except AttributeError:
                     pass
                 # Debian-specific dist-packages directories:
-                sitedirs.append(os.path.join(prefix, "local/lib",
-                                             "python" + sys.version[:3],
-                                             "dist-packages"))
+                sitedirs.append(
+                    os.path.join(
+                        prefix,
+                        "local/lib",
+                        f"python{sys.version[:3]}",
+                        "dist-packages",
+                    )
+                )
+
                 if sys.version[0] == '2':
-                    sitedirs.append(os.path.join(prefix, "lib",
-                                                 "python" + sys.version[:3],
-                                                 "dist-packages"))
+                    sitedirs.append(
+                        os.path.join(
+                            prefix,
+                            "lib",
+                            f"python{sys.version[:3]}",
+                            "dist-packages",
+                        )
+                    )
+
                 else:
                     sitedirs.append(os.path.join(prefix, "lib",
                                                  "python" + sys.version[0],
@@ -264,19 +296,14 @@ def addsitepackages(known_paths, sys_prefix=sys.prefix, exec_prefix=sys.exec_pre
                 sitedirs.append(os.path.join(prefix, "lib", "dist-python"))
             else:
                 sitedirs = [prefix, os.path.join(prefix, "lib", "site-packages")]
-            if sys.platform == 'darwin':
-                # for framework builds *only* we add the standard Apple
-                # locations. Currently only per-user, but /Library and
-                # /Network/Library could be added too
-                if 'Python.framework' in prefix:
-                    home = os.environ.get('HOME')
-                    if home:
-                        sitedirs.append(
-                            os.path.join(home,
-                                         'Library',
-                                         'Python',
-                                         sys.version[:3],
-                                         'site-packages'))
+            if sys.platform == 'darwin' and 'Python.framework' in prefix:
+                if home := os.environ.get('HOME'):
+                    sitedirs.append(
+                        os.path.join(home,
+                                     'Library',
+                                     'Python',
+                                     sys.version[:3],
+                                     'site-packages'))
             for sitedir in sitedirs:
                 if os.path.isdir(sitedir):
                     addsitedir(sitedir, known_paths)
@@ -295,14 +322,18 @@ def check_enableusersite():
     if hasattr(sys, 'flags') and getattr(sys.flags, 'no_user_site', False):
         return False
 
-    if hasattr(os, "getuid") and hasattr(os, "geteuid"):
-        # check process uid == effective uid
-        if os.geteuid() != os.getuid():
-            return None
-    if hasattr(os, "getgid") and hasattr(os, "getegid"):
-        # check process gid == effective gid
-        if os.getegid() != os.getgid():
-            return None
+    if (
+        hasattr(os, "getuid")
+        and hasattr(os, "geteuid")
+        and os.geteuid() != os.getuid()
+    ):
+        return None
+    if (
+        hasattr(os, "getgid")
+        and hasattr(os, "getegid")
+        and os.getegid() != os.getgid()
+    ):
+        return None
 
     return True
 
@@ -392,7 +423,7 @@ def setquit():
         def __init__(self, name):
             self.name = name
         def __repr__(self):
-            return 'Use %s() or %s to exit' % (self.name, eof)
+            return f'Use {self.name}() or {eof} to exit'
         def __call__(self, code=None):
             # Shells like IDLE catch the SystemExit, but listen when their
             # stdin wrapper is closed.
@@ -426,9 +457,8 @@ class _Printer(object):
             for filename in self.__files:
                 filename = os.path.join(dir, filename)
                 try:
-                    fp = open(filename, "rU")
-                    data = fp.read()
-                    fp.close()
+                    with open(filename, "rU") as fp:
+                        data = fp.read()
                     break
                 except IOError:
                     pass
@@ -527,16 +557,6 @@ def setencoding():
     default is 'ascii', but if you're willing to experiment, you can
     change this."""
     encoding = "ascii" # Default value set by _PyUnicode_Init()
-    if 0:
-        # Enable to support locale aware default string encodings.
-        import locale
-        loc = locale.getdefaultlocale()
-        if loc[1]:
-            encoding = loc[1]
-    if 0:
-        # Enable to switch off string to Unicode coercion and implicit
-        # Unicode to string conversion.
-        encoding = "undefined"
     if encoding != "ascii":
         # On Non-Unicode builds this will raise an AttributeError...
         sys.setdefaultencoding(encoding) # Needs Python Unicode build !
@@ -550,13 +570,11 @@ def execsitecustomize():
         pass
 
 def virtual_install_main_packages():
-    f = open(os.path.join(os.path.dirname(__file__), 'orig-prefix.txt'))
-    sys.real_prefix = f.read().strip()
-    f.close()
-    pos = 2
+    with open(os.path.join(os.path.dirname(__file__), 'orig-prefix.txt')) as f:
+        sys.real_prefix = f.read().strip()
     hardcoded_relative_dirs = []
     if sys.path[0] == '':
-        pos += 1
+        pos = 2 + 1
     if _is_jython:
         paths = [os.path.join(sys.real_prefix, 'Lib')]
     elif _is_pypy:
@@ -569,26 +587,31 @@ def virtual_install_main_packages():
         paths = [os.path.join(sys.real_prefix, 'lib_pypy'),
                  os.path.join(sys.real_prefix, 'lib-python', cpyver)]
         if sys.pypy_version_info < (1, 9):
-            paths.insert(1, os.path.join(sys.real_prefix,
-                                         'lib-python', 'modified-%s' % cpyver))
+            paths.insert(
+                1,
+                os.path.join(
+                    sys.real_prefix, 'lib-python', f'modified-{cpyver}'
+                ),
+            )
+
         hardcoded_relative_dirs = paths[:] # for the special 'darwin' case below
         #
         # This is hardcoded in the Python executable, but relative to sys.prefix:
         for path in paths[:]:
-            plat_path = os.path.join(path, 'plat-%s' % sys.platform)
+            plat_path = os.path.join(path, f'plat-{sys.platform}')
             if os.path.exists(plat_path):
                 paths.append(plat_path)
     elif sys.platform == 'win32':
         paths = [os.path.join(sys.real_prefix, 'Lib'), os.path.join(sys.real_prefix, 'DLLs')]
     else:
-        paths = [os.path.join(sys.real_prefix, 'lib', 'python'+sys.version[:3])]
+        paths = [os.path.join(sys.real_prefix, 'lib', f'python{sys.version[:3]}')]
         hardcoded_relative_dirs = paths[:] # for the special 'darwin' case below
-        lib64_path = os.path.join(sys.real_prefix, 'lib64', 'python'+sys.version[:3])
-        if os.path.exists(lib64_path):
-            if _is_64bit:
+        lib64_path = os.path.join(sys.real_prefix, 'lib64', f'python{sys.version[:3]}')
+        if _is_64bit:
+            if os.path.exists(lib64_path):
                 paths.insert(0, lib64_path)
-            else:
-                paths.append(lib64_path)
+        elif os.path.exists(lib64_path):
+            paths.append(lib64_path)
         # This is hardcoded in the Python executable, but relative to
         # sys.prefix.  Debian change: we need to add the multiarch triplet
         # here, which is where the real stuff lives.  As per PEP 421, in
@@ -599,9 +622,10 @@ def virtual_install_main_packages():
         except AttributeError:
             # This is a non-multiarch aware Python.  Fallback to the old way.
             arch = sys.platform
-        plat_path = os.path.join(sys.real_prefix, 'lib',
-                                 'python'+sys.version[:3],
-                                 'plat-%s' % arch)
+        plat_path = os.path.join(
+            sys.real_prefix, 'lib', f'python{sys.version[:3]}', f'plat-{arch}'
+        )
+
         if os.path.exists(plat_path):
             paths.append(plat_path)
     # This is hardcoded in the Python executable, but
@@ -724,10 +748,7 @@ def _script():
             print("    %r," % (dir,))
         print("]")
         def exists(path):
-            if os.path.isdir(path):
-                return "exists"
-            else:
-                return "doesn't exist"
+            return "exists" if os.path.isdir(path) else "doesn't exist"
         print("USER_BASE: %r (%s)" % (USER_BASE, exists(USER_BASE)))
         print("USER_SITE: %r (%s)" % (USER_SITE, exists(USER_BASE)))
         print("ENABLE_USER_SITE: %r" %  ENABLE_USER_SITE)

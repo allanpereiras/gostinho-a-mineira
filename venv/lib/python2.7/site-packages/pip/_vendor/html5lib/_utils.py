@@ -56,8 +56,7 @@ class MethodDispatcher(dict):
         _dictEntries = []
         for name, value in items:
             if isinstance(name, (list, tuple, frozenset, set)):
-                for item in name:
-                    _dictEntries.append((item, value))
+                _dictEntries.extend((item, value) for item in name)
             else:
                 _dictEntries.append((name, value))
         dict.__init__(self, _dictEntries)
@@ -78,9 +77,7 @@ def isSurrogatePair(data):
 
 
 def surrogatePairToCodepoint(data):
-    char_val = (0x10000 + (ord(data[0]) - 0xD800) * 0x400 +
-                (ord(data[1]) - 0xDC00))
-    return char_val
+    return 0x10000 + (ord(data[0]) - 0xD800) * 0x400 + (ord(data[1]) - 0xDC00)
 
 # Module Factory Factory (no, this isn't Java, I know)
 # Here to stop this being duplicated all over the place.
@@ -91,7 +88,7 @@ def moduleFactoryFactory(factory):
 
     def moduleFactory(baseModule, *args, **kwargs):
         if isinstance(ModuleType.__name__, type("")):
-            name = "_%s_factory" % baseModule.__name__
+            name = f"_{baseModule.__name__}_factory"
         else:
             name = b"_%s_factory" % baseModule.__name__
 

@@ -6,7 +6,7 @@ from . import base
 from ..constants import rcdataElements, spaceCharacters
 spaceCharacters = "".join(spaceCharacters)
 
-SPACES_REGEX = re.compile("[%s]+" % spaceCharacters)
+SPACES_REGEX = re.compile(f"[{spaceCharacters}]+")
 
 
 class Filter(base.Filter):

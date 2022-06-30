@@ -17,9 +17,7 @@ def _b64_encode_str(s):
 
 
 def _b64_encode(s):
-    if isinstance(s, text_type):
-        return _b64_encode_str(s)
-    return _b64_encode_bytes(s)
+    return _b64_encode_str(s) if isinstance(s, text_type) else _b64_encode_bytes(s)
 
 
 def _b64_decode_bytes(b):
@@ -53,20 +51,20 @@ class Serializer(object):
         data = {
             "response": {
                 "body": _b64_encode_bytes(body),
-                "headers": dict(
-                    (_b64_encode(k), _b64_encode(v))
+                "headers": {
+                    _b64_encode(k): _b64_encode(v)
                     for k, v in response.headers.items()
-                ),
+                },
                 "status": response.status,
                 "version": response.version,
                 "reason": _b64_encode_str(response.reason),
                 "strict": response.strict,
                 "decode_content": response.decode_content,
             },
+            "vary": {},
         }
 
-        # Construct our vary headers
-        data["vary"] = {}
+
         if "vary" in response_headers:
             varied_headers = response_headers['vary'].split(',')
             for header in varied_headers:
@@ -74,10 +72,11 @@ class Serializer(object):
                 data["vary"][header] = request.headers.get(header, None)
 
         # Encode our Vary headers to ensure they can be serialized as JSON
-        data["vary"] = dict(
-            (_b64_encode(k), _b64_encode(v) if v is not None else v)
+        data["vary"] = {
+            _b64_encode(k): _b64_encode(v) if v is not None else v
             for k, v in data["vary"].items()
-        )
+        }
+
 
         return b",".join([
             b"cc=2",
@@ -181,16 +180,18 @@ class Serializer(object):
         cached["response"]["body"] = _b64_decode_bytes(
             cached["response"]["body"]
         )
-        cached["response"]["headers"] = dict(
-            (_b64_decode_str(k), _b64_decode_str(v))
+        cached["response"]["headers"] = {
+            _b64_decode_str(k): _b64_decode_str(v)
             for k, v in cached["response"]["headers"].items()
-        )
+        }
+
         cached["response"]["reason"] = _b64_decode_str(
             cached["response"]["reason"],
         )
-        cached["vary"] = dict(
-            (_b64_decode_str(k), _b64_decode_str(v) if v is not None else v)
+        cached["vary"] = {
+            _b64_decode_str(k): _b64_decode_str(v) if v is not None else v
             for k, v in cached["vary"].items()
-        )
+        }
+
 
         return self.prepare_response(request, cached)
